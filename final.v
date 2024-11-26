@@ -23,7 +23,7 @@ PCAdder PCAdder (
     .PCOut(PCOutPlus4)  // output
 );
 
-// INSTRUCTION MEMEORY (component #3):
+// INSTRUCTION MEMORY (component #3):
 
 wire Instruction;
 
@@ -96,6 +96,15 @@ RegisterFile RegisterFile(
     .Clk(Clk)
     .ReadData1(ReadData1)                   // output, 32 bits
     .ReadData2(ReadData2)                   // output, 32 bits
+);
+
+// SIGN EXTENSION (component #8):
+
+wire SignExtOut;
+
+SignExtension SignExtension(
+    .a(Instruction[15:0]),      // input, 16 bits
+    .result(SignExtOut)         // output, 32 bits
 );
 
 endmodule
