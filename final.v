@@ -56,8 +56,8 @@ wire RegWrite;
 wire ALUControl;
 
 Control Control(
-    .opcode(Instruction[31:26]),    // input
-    .funct(Instruction[5:0]),       // input
+    .opcode(Instruction[31:26]),    // input, 6 Bits
+    .funct(Instruction[5:0]),       // input, 6 Bits
     .ALUSrc(ALUSrc),                // output
     .RegDst(RegDst),                // output
     .MemWrite(MemWrite),            // output
@@ -68,6 +68,17 @@ Control Control(
     .MemToReg(MemToReg),            // output
     .RegWrite(RegWrite),            // output
     .ALUControl(ALUControl)         // output
+);
+
+// MUX1 (component #6):
+
+wire MUX1Out;
+
+Mux5Bit2To1 MUX1(
+    .a(Instruction[20:16]),   // input, 5 Bits
+    .b(Instruction[15:11]),   // input, 5 Bits
+    .op(RegDst),  // input
+    .result(MUX1Out)   // output, 5 Bits
 );
 
 endmodule
