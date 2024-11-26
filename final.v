@@ -18,18 +18,25 @@ ALU16Bit ALU0 (
         .overflow(overflow_temp[0])
     );
 
-/*
-PROGRAM COUNTER (component #1):
-*/
 
-wire MUX4Out;
-wire PCOut;
+// PROGRAM COUNTER (component #1):
+
+
+wire MUX4Out;   // 32 bits, output from MUX5 (component #17)
+wire PCOut;     // 32 bits, input to PCAdder (component #2) and InstructionMemory (component #3)
 
 ProgramCounter ProgramCounter (
-    .PCIn(MUX4Out),    // 32 bits, output from MUX5 (component #17)
-    .Ckl(Clk),
-    .PCOut(PCOut)      // 32 bits, input to PCAdder (component #2) and InstructionMemory (component #3)
+    .PCIn(MUX4Out),     // input
+    .Ckl(Clk),          // input
+    .PCOut(PCOut)       // output
 );
+
+wire PCOutPlus4;
+
+PCAdder PCAdder (
+    .PCIn(PCOut),       // input
+    .PCOut(PCOutPlus4)  // output
+)
 
 endmodule
 
