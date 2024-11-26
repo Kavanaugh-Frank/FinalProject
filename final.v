@@ -10,7 +10,7 @@ wire PCOut;     // 32 bits, input to PCAdder (component #2) and InstructionMemor
 
 ProgramCounter ProgramCounter (
     .PCIn(MUX4Out),     // input
-    .Ckl(Clk),          // input
+    .Clk(Clk),          // input
     .PCOut(PCOut)       // output
 );
 
@@ -88,13 +88,13 @@ wire ReadData1;
 wire ReadData2;
 
 RegisterFile RegisterFile(
-    .ReadRegister1(Instruction[25:21])      // input, 5 Bits
-    .ReadRegister2(Instruction[20:16])      // input, 5 Bits
-    .WriteRegister(MUX1Out)                 // input, 5 Bits
-    .WriteData(MUX5Out)                     // input, 32 Bits
-    .RegWrite(RegWrite)                     // input, 1 bit control signal
-    .Clk(Clk)
-    .ReadData1(ReadData1)                   // output, 32 bits
+    .ReadRegister1(Instruction[25:21]),      // input, 5 Bits
+    .ReadRegister2(Instruction[20:16]),      // input, 5 Bits
+    .WriteRegister(MUX1Out),                 // input, 5 Bits
+    .WriteData(MUX5Out),                     // input, 32 Bits
+    .RegWrite(RegWrite),                     // input, 1 bit control signal
+    .Clk(Clk),
+    .ReadData1(ReadData1),                   // output, 32 bits
     .ReadData2(ReadData2)                   // output, 32 bits
 );
 
