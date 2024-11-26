@@ -1,49 +1,10 @@
-module MIPS(
-    input Clk, 
-    input reset
-);
-    input clk;
-    input reset;
-
-    wire [5:0] opcode;
-    wire [5:0] funct;
-
-    wire [1:0] ALUSrc;
-    wire RegDst;
-    wire MemWrite;
-    wire MemRead;
-    wire Beq;
-    wire Bne;
-    wire Jump;
-    wire MemToReg
-    wire RegWrite;
-    wire [2:0] ALUControl;
-
-    datapath Datapath(Clk, reset, RegDst, ALUSrc, MemToReg, RegWrite, MemRead, MemWrite, Branch, ALUOp, OpCode);
-    
-    control Control(opcode, funct, ALUSrc, RegDst, MemWrite, MemRead, Beq, Bne, Jump, MemToReg, RegWrite, ALUControl); 
-
-endmodule
-
-module Control(
-    input [5:0] opcode,       // 6-bit opcode
-    input [5:0] funct,        // 6-bit function field (for R-type instructions)
-    output reg ALUSrc,        // ALU Source
-    output reg RegDst,        // Register Destination
-    output reg MemWrite,      // Memory Write
-    output reg MemRead,       // Memory Read
-    output reg Beq,           // Branch Equal
-    output reg Bne,           // Branch Not Equal
-    output reg Jump,          // Jump signal
-    output reg MemToReg,      // Memory to Register
-    output reg RegWrite,      // Register Write
-    output reg [2:0] ALUControl // 3-bit ALU control signal
+module cpu(
+    input pcCLK,
+    input Clk
 );
 
 
 endmodule
-
-
 
 //
 //
