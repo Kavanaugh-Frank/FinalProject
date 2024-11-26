@@ -25,6 +25,24 @@ module MIPS(
 
 endmodule
 
+module Control(
+    input [5:0] opcode,       // 6-bit opcode
+    input [5:0] funct,        // 6-bit function field (for R-type instructions)
+    output reg ALUSrc,        // ALU Source
+    output reg RegDst,        // Register Destination
+    output reg MemWrite,      // Memory Write
+    output reg MemRead,       // Memory Read
+    output reg Beq,           // Branch Equal
+    output reg Bne,           // Branch Not Equal
+    output reg Jump,          // Jump signal
+    output reg MemToReg,      // Memory to Register
+    output reg RegWrite,      // Register Write
+    output reg [2:0] ALUControl // 3-bit ALU control signal
+);
+
+
+endmodule
+
 
 
 //
