@@ -67,7 +67,7 @@ Control Control(
     .Jump(Jump),                    // output
     .MemToReg(MemToReg),            // output
     .RegWrite(RegWrite),            // output
-    .ALUControl(ALUControl)         // output
+    .ALUControl(ALUControl)         // output, 3 bits
 );
 
 // MUX1 (component #6):
@@ -136,6 +136,19 @@ BEQAdder BEQAdder(
     .ValueIn1(PCOutPlus4),                  // input, 32 bits
     .ValueIn2(LeftShifterWithDiscardOut),   // input, 32 bits
     .ValueOut(BEQAdderOut)                  // output 32 bits
+);
+
+// 32 BIT ALU (component #13):
+
+wire ZeroFlag;
+wire ALUResult;
+
+ALU32Bit ALU32Bit(
+    .a(ReadData1)       // input, 32 bits
+    .b(MUX2Out)         // input, 32 bits
+    .op(ALUControl)     // input, 3 bits
+    .zero(ZeroFlag)     // output, 1 bit zero flag
+    .result(ALUResult)  // output, 32 bits
 );
 
 endmodule
