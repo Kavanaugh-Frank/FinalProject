@@ -50,13 +50,6 @@ module cpu(
         .ALUControl(ALUControl)
     );
 
-
-    //
-    //
-    // This is for PC Loopback
-    //
-    //
-
     // Wires for PC Adder
     wire [31:0] PCPlusFour;
 
@@ -77,7 +70,6 @@ module cpu(
 
     // Wires for BEQ Adder
     wire [31:0] branchAddress;
-
 
     // Add the sign-extended immediate value to PC+4 for branch address calculation
     BEQAdder BEQAdd (
@@ -112,16 +104,9 @@ module cpu(
         .result(PCIn)
     );
 
-
-    //
-    //
-    // Register File
-    //
-    //
-
     // Wires for Register File
-    // Address of the Register to be written to
     wire [4:0] WriteRegister;
+    wire [31:0] WriteData;
 
     // Mux for WriteRegister
     Mux5Bit2To1 WriteRegMux(
@@ -131,20 +116,15 @@ module cpu(
         .result(WriteRegister)
     );
 
-    // Wire for the data that needs to be written to the Register File
-    wire [31:0] WriteData;
-
     // Mux for WriteData
-    // this is a work in progress, the Data Memory is not yet implemented
     Mux32Bit2To1 WriteDataMux(
-        .a(ALUResult), // placeholder variable for now
-        .b(ReadData),  // placeholder variable for now
+        .a(ALUResult),
+        .b(MemData),
         .op(MemToReg),
         .result(WriteData)
     );
 
     wire [31:0] ReadData1, ReadData2;
-
     // Instantiate the Register File
     RegisterFile RF(
         .ReadRegister1(Instruction[25:21]),
@@ -157,15 +137,11 @@ module cpu(
         .ReadData2(ReadData2)
     );
 
-
-    //
-    //
-    // ALU
-    //
-    //
-
+    // Wires for ALU
     wire zeroFlag; // used in the BEQ and BNE operations
+    wire [31:0] ALUResult;
 
+    // Instantiate the ALU
     ALU32Bit alu(
         .a(ReadData1),
         .b(ALUSrc ? SignExtended : ReadData2),
@@ -179,13 +155,20 @@ module cpu(
         .g(),
         .p(),
         .overflow()
-    )
+    );
 
-    //
-    //
-    // Data Memory
-    //
-    //
+    // Wires for Data Memory
+    wire [31:0] MemData;
+
+    // Instantiate the Data Memory
+    DataMemory DM(
+        .Address(ALUResult),
+        .WriteData(ReadData2),
+        .MemRead(MemRead),
+        .MemWrite(MemWrite),
+        .Clk(Clk),
+        .ReadData(MemData)
+    );
 
 endmodule
 
