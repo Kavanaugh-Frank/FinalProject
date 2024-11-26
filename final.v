@@ -107,6 +107,15 @@ SignExtension SignExtension(
     .result(SignExtOut)         // output, 32 bits
 );
 
+// LEFT SHIFTER WITH DISCARD (component #9):
+
+wire LeftShiftWithDiscardOut;
+
+LeftShifterWithDiscard LeftShifterWithDiscard(
+    .ValueIn(SignExtOut),     // input, 32 bits
+    .ValueOut(LeftShifterWithDiscardOut)     // output, 32 bits
+);
+
 endmodule
 
 //
