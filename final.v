@@ -3,6 +3,189 @@ module cpu(
     input Clk
 );
 
+    // Wires for Program Counter (PC)
+    wire [31:0] PCIn; // input to the PC
+    wire [31:0] PCOut; // output of the PC
+
+    // Instantiate the Program Counter (PC) module
+    ProgramCounter PC (
+        .PCIn(PCIn),
+        .Clk(pcCLK),
+        .PCOut(PCOut)
+    );
+
+    // Wires for Instruction Memory
+    wire [31:0] Instruction;
+
+    // Instantiate the Instruction Memory module
+    InstructionMemory IM (
+        .Address(PCOut),
+        .Clk(Clk),
+        .Instruction(Instruction)
+    );
+
+    // Wires for Control Unit
+    wire [5:0] opcode;
+    wire [5:0] funct;
+    wire ALUSrc, RegDst, MemWrite, MemRead, Beq, Bne, Jump, MemToReg, RegWrite;
+    wire [2:0] ALUControl;
+
+    // Extract opcode and funct fields from the instruction
+    assign opcode = Instruction[31:26];
+    assign funct = Instruction[5:0];
+
+    // Instantiate the Control unit
+    Control ControlUnit (
+        .opcode(opcode),
+        .funct(funct),
+        .ALUSrc(ALUSrc),
+        .RegDst(RegDst),
+        .MemWrite(MemWrite),
+        .MemRead(MemRead),
+        .Beq(Beq),
+        .Bne(Bne),
+        .Jump(Jump),
+        .MemToReg(MemToReg),
+        .RegWrite(RegWrite),
+        .ALUControl(ALUControl)
+    );
+
+
+    //
+    //
+    // This is for PC Loopback
+    //
+    //
+
+    // Wires for PC Adder
+    wire [31:0] PCPlusFour;
+
+    // Add 4 to the PC for the next instruction
+    PCAdder PCAddFour (
+        .PCIn(PCOut),
+        .PCOut(PCPlusFour)
+    );
+
+    // Wires for Sign Extension
+    wire [31:0] SignExtended;
+
+    // Sign-extend the immediate value from the instruction
+    SignExtension signExtender (
+        .a(Instruction[15:0]),
+        .result(SignExtended)
+    );
+
+    // Wires for BEQ Adder
+    wire [31:0] branchAddress;
+
+
+    // Add the sign-extended immediate value to PC+4 for branch address calculation
+    BEQAdder BEQAdd (
+        .ValueIn1(PCPlusFour),
+        .ValueIn2({SignExtended[29:0], 2'b00}),
+        .ValueOut(branchAddress)
+    );
+
+    // Wires for Branch Mux
+    wire [31:0] branchAddressMuxOutput;
+
+    // Mux to select between PC+4 and branch address based on Beq or Bne signals
+    Mux32Bit2To1 branchMux(
+        .a(PCPlusFour),
+        .b(branchAddress),
+        .op((Beq | Bne) & zeroFlag),
+        .result(branchAddressMuxOutput)
+    );
+
+    // Wires for Jump Address
+    wire [31:0] jumpAddress;
+
+    // Calculate the jump address by concatenating the upper 4 bits of PCOut,
+    // the 26-bit immediate value from the instruction, and two zero bits.
+    assign jumpAddress = {PCPlusFour[31:28], Instruction[25:0], 2'b00};
+
+    // Mux to select between branch address and jump address based on Jump signal
+    Mux32Bit2To1 jumpMux(
+        .a(branchAddressMuxOutput),
+        .b(jumpAddress),
+        .op(Jump),
+        .result(PCIn)
+    );
+
+
+    //
+    //
+    // Register File
+    //
+    //
+
+    // Wires for Register File
+    // Address of the Register to be written to
+    wire [4:0] WriteRegister;
+
+    // Mux for WriteRegister
+    Mux5Bit2To1 WriteRegMux(
+        .a(Instruction[20:16]),
+        .b(Instruction[15:11]),
+        .op(RegDst),
+        .result(WriteRegister)
+    );
+
+    // Wire for the data that needs to be written to the Register File
+    wire [31:0] WriteData;
+
+    // Mux for WriteData
+    // this is a work in progress, the Data Memory is not yet implemented
+    Mux32Bit2To1 WriteDataMux(
+        .a(ALUResult), // placeholder variable for now
+        .b(ReadData),  // placeholder variable for now
+        .op(MemToReg),
+        .result(WriteData)
+    );
+
+    wire [31:0] ReadData1, ReadData2;
+
+    // Instantiate the Register File
+    RegisterFile RF(
+        .ReadRegister1(Instruction[25:21]),
+        .ReadRegister2(Instruction[20:16]),
+        .WriteRegister(WriteRegister),
+        .WriteData(WriteData),
+        .RegWrite(RegWrite),
+        .Clk(Clk),
+        .ReadData1(ReadData1),
+        .ReadData2(ReadData2)
+    );
+
+
+    //
+    //
+    // ALU
+    //
+    //
+
+    wire zeroFlag; // used in the BEQ and BNE operations
+
+    ALU32Bit alu(
+        .a(ReadData1),
+        .b(ALUSrc ? SignExtended : ReadData2),
+        .cin(1'b0),
+        .less(1'b0),
+        .op(ALUControl),
+        .result(ALUResult),
+        .cout(),
+        .set(),
+        .zero(zeroFlag),
+        .g(),
+        .p(),
+        .overflow()
+    )
+
+    //
+    //
+    // Data Memory
+    //
+    //
 
 endmodule
 
@@ -234,7 +417,6 @@ endmodule
 // ALU 32 Bit
 //
 //
-
 
 
 
