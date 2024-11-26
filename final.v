@@ -127,6 +127,17 @@ Mux32Bit2To1 MUX2(
     .result(MUX2Out)    // output, 32 bits
 );
 
+// BEQ ADDER (component #12):
+// note that component 11 is combined with the control module
+
+wire BEQAdderOut;
+
+BEQAdder BEQAdder(
+    .ValueIn1(PCOutPlus4),                  // input, 32 bits
+    .ValueIn2(LeftShifterWithDiscardOut),   // input, 32 bits
+    .ValueOut(BEQAdderOut)                  // output 32 bits
+);
+
 endmodule
 
 //
