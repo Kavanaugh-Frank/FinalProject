@@ -75,10 +75,27 @@ Control Control(
 wire MUX1Out;
 
 Mux5Bit2To1 MUX1(
-    .a(Instruction[20:16]),   // input, 5 Bits
-    .b(Instruction[15:11]),   // input, 5 Bits
-    .op(RegDst),  // input
-    .result(MUX1Out)   // output, 5 Bits
+    .a(Instruction[20:16]),     // input, 5 Bits
+    .b(Instruction[15:11]),     // input, 5 Bits
+    .op(RegDst),                // input
+    .result(MUX1Out)            // output, 5 Bits
+);
+
+// REGISTER FILE (component #7):
+
+wire MUX5Out;
+wire ReadData1;
+wire ReadData2;
+
+RegisterFile RegisterFile(
+    .ReadRegister1(Instruction[25:21])      // input, 5 Bits
+    .ReadRegister2(Instruction[20:16])      // input, 5 Bits
+    .WriteRegister(MUX1Out)                 // input, 5 Bits
+    .WriteData(MUX5Out)                     // input, 32 Bits
+    .RegWrite(RegWrite)                     // input, 1 bit control signal
+    .Clk(Clk)
+    .ReadData1(ReadData1)                   // output, 32 bits
+    .ReadData2(ReadData2)                   // output, 32 bits
 );
 
 endmodule
