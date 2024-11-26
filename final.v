@@ -21,7 +21,7 @@ wire PCOutPlus4;
 PCAdder PCAdder (
     .PCIn(PCOut),       // input
     .PCOut(PCOutPlus4)  // output
-)
+);
 
 // INSTRUCTION MEMEORY (component #3):
 
@@ -31,7 +31,16 @@ InstructionMemory InstructionMemory(
     .Address(PCOut),            // input
     .Clk(Clk),                  // input
     .Instruction(Instruction)   // output
-)
+);
+
+// LEFT SHIFTER 2 BITS (component #4):
+
+wire LeftShift2BitOut;
+
+LeftShifterTwoBits LeftShifterTwoBits(
+    .ValueIn(Instruction),          // input 
+    .ValueOut(LeftShift2BitOut)     // output
+);
 
 endmodule
 
