@@ -3,24 +3,7 @@ module cpu(
     input Clk
 );
 
-ALU16Bit ALU0 (
-        .a(a[15:0]), 
-        .b(b[15:0]), 
-        .cin(cin), 
-        .less(less), 
-        .op(op), 
-        .result(result[15:0]), 
-        .cout(carry[0]), 
-        .set(setv[0]), 
-        .zero(), 
-        .g(G_block[0]), 
-        .p(P_block[0]), 
-        .overflow(overflow_temp[0])
-    );
-
-
 // PROGRAM COUNTER (component #1):
-
 
 wire MUX4Out;   // 32 bits, output from MUX5 (component #17)
 wire PCOut;     // 32 bits, input to PCAdder (component #2) and InstructionMemory (component #3)
@@ -31,11 +14,23 @@ ProgramCounter ProgramCounter (
     .PCOut(PCOut)       // output
 );
 
+// PC ADDER (component #2):
+
 wire PCOutPlus4;
 
 PCAdder PCAdder (
     .PCIn(PCOut),       // input
     .PCOut(PCOutPlus4)  // output
+)
+
+// INSTRUCTION MEMEORY (component #3):
+
+wire Instruction;
+
+InstructionMemory InstructionMemory(
+    .Address(PCOut),            // input
+    .Clk(Clk),                  // input
+    .Instruction(Instruction)   // output
 )
 
 endmodule
