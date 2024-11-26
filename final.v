@@ -38,8 +38,36 @@ InstructionMemory InstructionMemory(
 wire LeftShift2BitOut;
 
 LeftShifterTwoBits LeftShifterTwoBits(
-    .ValueIn(Instruction),          // input 
-    .ValueOut(LeftShift2BitOut)     // output
+    .ValueIn(Instruction[25:0]),    // input, only the lower 26 bits
+    .ValueOut(LeftShift2BitOut)     // output, 28 bits
+);
+
+// CONTROL (component #5):
+
+wire ALUSrc;
+wire RegDst;
+wire MemWrite;
+wire MemRead;
+wire Beq;
+wire Bne;
+wire Jump;
+wire MemToReg;
+wire RegWrite;
+wire ALUControl;
+
+Control Control(
+    .opcode(Instruction[31:26]),    // input
+    .funct(Instruction[5:0]),       // input
+    .ALUSrc(ALUSrc),                // output
+    .RegDst(RegDst),                // output
+    .MemWrite(MemWrite),            // output
+    .MemRead(MemRead),              // output
+    .Beq(Beq),                      // output
+    .Bne(Bne),                      // output
+    .Jump(Jump),                    // output
+    .MemToReg(MemToReg),            // output
+    .RegWrite(RegWrite),            // output
+    .ALUControl(ALUControl)         // output
 );
 
 endmodule
