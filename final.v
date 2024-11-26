@@ -112,8 +112,19 @@ SignExtension SignExtension(
 wire LeftShiftWithDiscardOut;
 
 LeftShifterWithDiscard LeftShifterWithDiscard(
-    .ValueIn(SignExtOut),     // input, 32 bits
-    .ValueOut(LeftShifterWithDiscardOut)     // output, 32 bits
+    .ValueIn(SignExtOut),                   // input, 32 bits
+    .ValueOut(LeftShifterWithDiscardOut)    // output, 32 bits
+);
+
+// MUX2 (component #10):
+
+wire MUX2Out;
+
+Mux32Bit2To1 MUX2(
+    .a(ReadData2),      // input, 32 bits
+    .b(SignExtOut),     // input, 32 bits
+    .op(ALUSrc),        // input, 1 bit control signal
+    .result(MUX2Out)    // output, 32 bits
 );
 
 endmodule
