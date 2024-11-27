@@ -10,7 +10,7 @@ wire [31:0] PCOut;     // 32 bits, input to PCAdder (component #2) and Instructi
 
 ProgramCounter ProgramCounter (
     .PCIn(MUX4Out),     // input
-    .Clk(Clk),          // input
+    .Clk(pcCLK),          // input
     .PCOut(PCOut)       // output
 );
 
