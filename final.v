@@ -184,6 +184,15 @@ Mux32Bit2To1 MUX4(
     .result(MUX4Out)                                    // output, 32 bits
 );
 
+// MUX5 (component #18):
+
+Mux32Bit2To1 MUX5(
+    .a(MemData),                                     // input, 32 bits
+    .b(ALUResult),                                    // input, 32 bits
+    .op(MemToReg),  // input, 1 bit control signal
+    .result(MUX5Out)                                    // output, 32 bits
+);
+
 endmodule
 
 //
