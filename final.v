@@ -216,11 +216,12 @@ module InstructionMemory(
 
     // Preload program instructions for simulation
     initial begin
-        memory[0] = 8'h20; memory[1] = 8'h08; memory[2] = 8'h00; memory[3] = 8'h05; // addi $t0, $zero, 5
-        memory[4] = 8'h20; memory[5] = 8'h09; memory[6] = 8'h00; memory[7] = 8'h0A; // addi $t1, $zero, 10
-        memory[8] = 8'h01; memory[9] = 8'h09; memory[10] = 8'h50; memory[11] = 8'h20; // add $t2, $t0, $t1
-        memory[12] = 8'hAC; memory[13] = 8'h0A; memory[14] = 8'h00; memory[15] = 8'h00; // sw $t2, 0($zero)
-        memory[16] = 8'h8C; memory[17] = 8'h0B; memory[18] = 8'h00; memory[19] = 8'h00; // lw $t3, 0($zero)
+        // add $t0, $zero, $s0    # $t0 = 7 
+        memory[0] = 8'h00; memory[1] = 8'h10; memory[2] = 8'h40; memory[3] = 8'h20;
+        // add $t1, $zero, $s1    # $t1 = 3
+        memory[4] = 8'h00; memory[5] = 8'h11; memory[6] = 8'h48; memory[7] = 8'h20;
+        // add $t2, $t0, $t1      # $t2 = 10
+        memory[8] = 8'h01; memory[9] = 8'h09; memory[10] = 8'h50; memory[11] = 8'h20;
     end
 
 endmodule
