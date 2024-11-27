@@ -5,8 +5,8 @@ module cpu(
 
 // PROGRAM COUNTER (component #1):
 
-wire MUX4Out;   // 32 bits, output from MUX5 (component #17)
-wire PCOut;     // 32 bits, input to PCAdder (component #2) and InstructionMemory (component #3)
+wire [31:0] MUX4Out;   // 32 bits, output from MUX5 (component #17)
+wire [31:0] PCOut;     // 32 bits, input to PCAdder (component #2) and InstructionMemory (component #3)
 
 ProgramCounter ProgramCounter (
     .PCIn(MUX4Out),     // input
@@ -16,7 +16,7 @@ ProgramCounter ProgramCounter (
 
 // PC ADDER (component #2):
 
-wire PCOutPlus4;
+wire [31:0] PCOutPlus4;
 
 PCAdder PCAdder (
     .PCIn(PCOut),       // input
@@ -25,7 +25,7 @@ PCAdder PCAdder (
 
 // INSTRUCTION MEMORY (component #3):
 
-wire Instruction;
+wire [31:0] Instruction;
 
 InstructionMemory InstructionMemory(
     .Address(PCOut),            // input
@@ -35,7 +35,7 @@ InstructionMemory InstructionMemory(
 
 // LEFT SHIFTER 2 BITS (component #4):
 
-wire LeftShift2BitOut;
+wire [27:0] LeftShift2BitOut;
 
 LeftShifterTwoBits LeftShifterTwoBits(
     .ValueIn(Instruction[25:0]),    // input, only the lower 26 bits
@@ -53,7 +53,7 @@ wire Bne;
 wire Jump;
 wire MemToReg;
 wire RegWrite;
-wire ALUControl;
+wire [2:0] ALUControl;
 
 Control Control(
     .opcode(Instruction[31:26]),    // input, 6 Bits
@@ -72,7 +72,7 @@ Control Control(
 
 // MUX1 (component #6):
 
-wire MUX1Out;
+wire [4:0] MUX1Out;
 
 Mux5Bit2To1 MUX1(
     .a(Instruction[20:16]),     // input, 5 Bits
@@ -83,9 +83,9 @@ Mux5Bit2To1 MUX1(
 
 // REGISTER FILE (component #7):
 
-wire MUX5Out;
-wire ReadData1;
-wire ReadData2;
+wire [31:0] MUX5Out;
+wire [31:0] ReadData1;
+wire [31:0] ReadData2;
 
 RegisterFile RegisterFile(
     .ReadRegister1(Instruction[25:21]),      // input, 5 Bits
@@ -100,7 +100,7 @@ RegisterFile RegisterFile(
 
 // SIGN EXTENSION (component #8):
 
-wire SignExtOut;
+wire [31:0] SignExtOut;
 
 SignExtension SignExtension(
     .a(Instruction[15:0]),      // input, 16 bits
@@ -109,7 +109,7 @@ SignExtension SignExtension(
 
 // LEFT SHIFTER WITH DISCARD (component #9):
 
-wire LeftShiftWithDiscardOut;
+wire [31:0] LeftShiftWithDiscardOut;
 
 LeftShifterWithDiscard LeftShifterWithDiscard(
     .ValueIn(SignExtOut),                   // input, 32 bits
@@ -118,7 +118,7 @@ LeftShifterWithDiscard LeftShifterWithDiscard(
 
 // MUX2 (component #10):
 
-wire MUX2Out;
+wire [31:0] MUX2Out;
 
 Mux32Bit2To1 MUX2(
     .a(ReadData2),      // input, 32 bits
@@ -130,7 +130,7 @@ Mux32Bit2To1 MUX2(
 // BEQ ADDER (component #12):
 // note that component 11 is combined with the control module
 
-wire BEQAdderOut;
+wire [31:0] BEQAdderOut;
 
 BEQAdder BEQAdder(
     .ValueIn1(PCOutPlus4),                  // input, 32 bits
@@ -141,19 +141,19 @@ BEQAdder BEQAdder(
 // 32 BIT ALU (component #13):
 
 wire ZeroFlag;
-wire ALUResult;
+wire [31:0] ALUResult;
 
 ALU32Bit ALU32Bit(
-    .a(ReadData1)       // input, 32 bits
-    .b(MUX2Out)         // input, 32 bits
-    .op(ALUControl)     // input, 3 bits
-    .zero(ZeroFlag)     // output, 1 bit zero flag
+    .a(ReadData1),       // input, 32 bits
+    .b(MUX2Out),         // input, 32 bits
+    .op(ALUControl),     // input, 3 bits
+    .zero(ZeroFlag),     // output, 1 bit zero flag
     .result(ALUResult)  // output, 32 bits
 );
 
 // MUX3 (component #14):
 
-wire MUX3Out;
+wire [31:0] MUX3Out;
 
 Mux32Bit2To1 MUX3(
     .a(PCOutPlus4),                                     // input, 32 bits
@@ -164,7 +164,7 @@ Mux32Bit2To1 MUX3(
 
 // DATA MEMORY (component #16):
 
-wire MemData;
+wire [31:0] MemData;
 
 DataMemory DataMemory(
     .Address(ALUResult),    // input, 32 bits
