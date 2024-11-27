@@ -151,6 +151,17 @@ ALU32Bit ALU32Bit(
     .result(ALUResult)  // output, 32 bits
 );
 
+// MUX3 (component #14):
+
+wire MUX3Out;
+
+Mux32Bit2To1 MUX3(
+    .a(PCOutPlus4),      // input, 32 bits
+    .b(BEQAdderOut),     // input, 32 bits
+    .op(((ZeroFlag) & (Beq)) | ((~ZeroFlag) & (Bne))),        // input, 1 bit control signal
+    .result(MUX3Out)    // output, 32 bits
+);
+
 endmodule
 
 //
