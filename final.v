@@ -113,7 +113,7 @@ wire [31:0] LeftShiftWithDiscardOut;
 
 LeftShifterWithDiscard LeftShifterWithDiscard(
     .ValueIn(SignExtOut),                   // input, 32 bits
-    .ValueOut(LeftShifterWithDiscardOut)    // output, 32 bits
+    .ValueOut(LeftShiftWithDiscardOut)    // output, 32 bits
 );
 
 // MUX2 (component #10):
@@ -134,7 +134,7 @@ wire [31:0] BEQAdderOut;
 
 BEQAdder BEQAdder(
     .ValueIn1(PCOutPlus4),                  // input, 32 bits
-    .ValueIn2(LeftShifterWithDiscardOut),   // input, 32 bits
+    .ValueIn2(LeftShiftWithDiscardOut),   // input, 32 bits
     .ValueOut(BEQAdderOut)                  // output 32 bits
 );
 
@@ -178,7 +178,7 @@ DataMemory DataMemory(
 // MUX4 (component #17):
 
 Mux32Bit2To1 MUX4(
-    .a({PCOutPlus4[31:28], LeftShift2BitOut[31:0]}),                                     // input, 32 bits
+    .a({PCOutPlus4[31:28], LeftShift2BitOut[27:0]}),                                     // input, 32 bits
     .b(MUX3Out),                                    // input, 32 bits
     .op(Jump),  // input, 1 bit control signal
     .result(MUX4Out)                                    // output, 32 bits
