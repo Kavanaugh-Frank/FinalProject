@@ -175,6 +175,15 @@ DataMemory DataMemory(
     .ReadData(MemData)      // output, 32 bits
 );
 
+// MUX4 (component #17):
+
+Mux32Bit2To1 MUX4(
+    .a({PCOutPlus4[31:28], LeftShift2BitOut[31:0]}),                                     // input, 32 bits
+    .b(MUX3Out),                                    // input, 32 bits
+    .op(Jump),  // input, 1 bit control signal
+    .result(MUX4Out)                                    // output, 32 bits
+);
+
 endmodule
 
 //
