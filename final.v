@@ -156,10 +156,23 @@ ALU32Bit ALU32Bit(
 wire MUX3Out;
 
 Mux32Bit2To1 MUX3(
-    .a(PCOutPlus4),      // input, 32 bits
-    .b(BEQAdderOut),     // input, 32 bits
-    .op(((ZeroFlag) & (Beq)) | ((~ZeroFlag) & (Bne))),        // input, 1 bit control signal
-    .result(MUX3Out)    // output, 32 bits
+    .a(PCOutPlus4),                                     // input, 32 bits
+    .b(BEQAdderOut),                                    // input, 32 bits
+    .op(((ZeroFlag) & (Beq)) | ((~ZeroFlag) & (Bne))),  // input, 1 bit control signal
+    .result(MUX3Out)                                    // output, 32 bits
+);
+
+// DATA MEMORY (component #16):
+
+wire MemData;
+
+DataMemory DataMemory(
+    .Address(ALUResult),    // input, 32 bits
+    .WriteData(ReadData2),  // input, 32 bits
+    .MemRead(MemRead),      // input, 1 bit control signal
+    .MemWrite(MemWrite),    // input, 1 bit control signal
+    .Clk(Clk),
+    .ReadData(MemData)      // output, 32 bits
 );
 
 endmodule
