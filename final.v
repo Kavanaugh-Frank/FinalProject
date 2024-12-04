@@ -2,38 +2,31 @@ module cpu(
     input pcCLK,
     input Clk
 );
-    // Wires for Program Counter (PC)
   	reg [31:0] PCIn = 32'h00001000; // input to the PC
     wire [31:0] PCOut; // output of the PC
 
-    // Instantiate the Program Counter (PC) module
     ProgramCounter PC (
         .PCIn(PCIn),
         .Clk(pcCLK),
         .PCOut(PCOut)
     );
 
-    // Wires for Instruction Memory
     wire [31:0] Instruction;
 
-    // Instantiate the Instruction Memory module
     InstructionMemory IM (
         .Address(PCOut),
         .Clk(Clk),
         .Instruction(Instruction)
     );
 
-    // Wires for Control Unit
     wire [5:0] opcode;
     wire [5:0] funct;
     wire ALUSrc, RegDst, MemWrite, MemRead, Beq, Bne, Jump, MemToReg, RegWrite;
     wire [2:0] ALUControl;
 
-    // Extract opcode and funct fields from the instruction
     assign opcode = Instruction[31:26];
     assign funct = Instruction[5:0];
 
-    // Instantiate the Control unit
     Control ControlUnit (
         .opcode(opcode),
         .funct(funct),
@@ -49,28 +42,21 @@ module cpu(
         .ALUControl(ALUControl)
     );
 
-    // Wires for PC Adder
     wire [31:0] PCPlusFour;
 
-    // Add 4 to the PC for the next instruction
     PCAdder PCAddFour (
         .PCIn(PCOut),
         .PCOut(PCPlusFour)
     );
 
-    // Wires for Sign Extension
     wire [31:0] SignExtended;
 
-    // Sign-extend the immediate value from the instruction
     SignExtension signExtender (
         .a(Instruction[15:0]),
         .result(SignExtended)
     );
 
-    // Wires for BEQ Adder
     wire [31:0] branchAddress;
-
-    // Add the sign-extended immediate value to PC+4 for branch address calculation
   
   	assign branchAddress = {16'b000000000000000, Instruction[15:0]};
 
@@ -87,7 +73,6 @@ module cpu(
     );
 
     // Wires for Jump Address
-  	//  = 32'h00001008
   	wire [31:0] jumpAddress;
 
     // Calculate the jump address by concatenating the upper 4 bits of PCOut,
@@ -98,7 +83,6 @@ module cpu(
 
     wire [31:0] jumpMuxResult;
   
-    // Mux to select between branch address and jump address based on Jump signal
     Mux32Bit2To1 jumpMux(
         .a(branchAddressMuxOutput),
         .b(jumpAddress),
@@ -106,11 +90,9 @@ module cpu(
         .result(jumpMuxResult)
     );
 
-    // Wires for Register File
     wire [4:0] WriteRegister;
     wire [31:0] WriteData;
 
-    // Mux for WriteRegister
     Mux5Bit2To1 WriteRegMux(
         .a(Instruction[20:16]),
         .b(Instruction[15:11]),
@@ -118,14 +100,11 @@ module cpu(
         .result(WriteRegister)
     );
 
-    // Wires for ALU
     wire [31:0] ALUResult;
 
-    // Wires for Data Memory
     wire [31:0] MemData;
     wire [31:0] ReadData1, ReadData2;
 
-    // Instantiate the Register File
     RegisterFile RF(
         .ReadRegister1(Instruction[25:21]),
         .ReadRegister2(Instruction[20:16]),
@@ -146,8 +125,6 @@ module cpu(
         .result(ALUReadData2)
     );  
   
-
-    // Instantiate the ALU
     ALU32Bit alu(
         .a(ReadData1),
         .b(ALUReadData2),
@@ -163,7 +140,6 @@ module cpu(
         .overflow()
     );
 
-    // Mux for WriteData
     Mux32Bit2To1 WriteDataMux(
         .a(ALUResult),
         .b(MemData),
@@ -171,7 +147,6 @@ module cpu(
         .result(WriteData)
     );
 
-    // Instantiate the Data Memory
     DataMemory DM(
         .Address(ALUResult),
         .WriteData(ReadData2),
@@ -183,11 +158,7 @@ module cpu(
 
     // Update the PCIn using the jumpMuxResult
     always @(posedge pcCLK) begin
-        PCIn <= jumpMuxResult; // Update PC on each clock cycle
-      //if (MemWrite) begin
-        //$display("Write Data %h", ReadData2);
-      //end
-      //$display("ALUResult: %h, ReadData1 %h, ReadData2 %h", ALUResult, ReadData1, ReadData2);
+        PCIn <= jumpMuxResult;
      end
 
 endmodule
@@ -205,14 +176,8 @@ module InstructionMemory(
     output reg [31:0] Instruction // 32-bit instruction output
 );
 
-  reg [7:0] memory [2**12:2**13-1]; // Byte-addressable memory with 8191 bytes
-
-    // this is where the instructions for the program will be
-  	// I left 1 as an example
+  	reg [7:0] memory [2**12:2**13-1]; // Byte-addressable memory with 8191 bytes
     initial begin
-        // R-type instruction to add $t2 (destination), $t0, $t1 (sources)
-        // Opcode 000000 (R-type), $t0 (rs = 8), $t1 (rt = 9), $t2 (rd = 10), 
-        // shamt 00000, funct 100000 (add)
     // adding 1 to s1 for the counter to work properly
     memory[4096]   = 8'h02; // Most significant byte
     memory[4097]   = 8'h2B; 
