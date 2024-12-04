@@ -2,9 +2,8 @@ module cpu(
     input pcCLK,
     input Clk
 );
-
     // Wires for Program Counter (PC)
-    wire [31:0] PCIn; // input to the PC
+    reg [31:0] PCIn = 32'h00000000; // input to the PC
     wire [31:0] PCOut; // output of the PC
 
     // Instantiate the Program Counter (PC) module
@@ -80,6 +79,7 @@ module cpu(
 
     // Wires for Branch Mux
     wire [31:0] branchAddressMuxOutput;
+    wire zeroFlag; // used in the BEQ and BNE operations
 
     // Mux to select between PC+4 and branch address based on Beq or Bne signals
     Mux32Bit2To1 branchMux(
@@ -96,12 +96,14 @@ module cpu(
     // the 26-bit immediate value from the instruction, and two zero bits.
     assign jumpAddress = {PCPlusFour[31:28], Instruction[25:0], 2'b00};
 
+    wire [31:0] jumpMuxResult;
+  
     // Mux to select between branch address and jump address based on Jump signal
     Mux32Bit2To1 jumpMux(
         .a(branchAddressMuxOutput),
         .b(jumpAddress),
-        .op(Jump),
-        .result(PCIn)
+        .op(Jump),  // Ensure Jump is properly evaluated
+        .result(jumpMuxResult)
     );
 
     // Wires for Register File
@@ -116,15 +118,13 @@ module cpu(
         .result(WriteRegister)
     );
 
-    // Mux for WriteData
-    Mux32Bit2To1 WriteDataMux(
-        .a(ALUResult),
-        .b(MemData),
-        .op(MemToReg),
-        .result(WriteData)
-    );
+    // Wires for ALU
+    wire [31:0] ALUResult;
 
+    // Wires for Data Memory
+    wire [31:0] MemData;
     wire [31:0] ReadData1, ReadData2;
+
     // Instantiate the Register File
     RegisterFile RF(
         .ReadRegister1(Instruction[25:21]),
@@ -137,14 +137,10 @@ module cpu(
         .ReadData2(ReadData2)
     );
 
-    // Wires for ALU
-    wire zeroFlag; // used in the BEQ and BNE operations
-    wire [31:0] ALUResult;
-
     // Instantiate the ALU
     ALU32Bit alu(
         .a(ReadData1),
-        .b(ALUSrc ? SignExtended : ReadData2),
+        .b(ReadData2),
         .cin(1'b0),
         .less(1'b0),
         .op(ALUControl),
@@ -157,8 +153,13 @@ module cpu(
         .overflow()
     );
 
-    // Wires for Data Memory
-    wire [31:0] MemData;
+    // Mux for WriteData
+    Mux32Bit2To1 WriteDataMux(
+        .a(ALUResult),
+        .b(MemData),
+        .op(MemToReg),
+        .result(WriteData)
+    );
 
     // Instantiate the Data Memory
     DataMemory DM(
@@ -170,7 +171,13 @@ module cpu(
         .ReadData(MemData)
     );
 
+    // Update the PCIn using the jumpMuxResult
+    always @(posedge pcCLK) begin
+        PCIn <= jumpMuxResult; // Update PC on each clock cycle
+    end
+
 endmodule
+
 
 //
 //
@@ -180,26 +187,40 @@ endmodule
 
 module InstructionMemory(
     input [31:0] Address,         // 32-bit address
-    input Clk,                    // Clock (not necessary for asynchronous reads but included for consistency)
+    input Clk,                    // Clock 
     output reg [31:0] Instruction // 32-bit instruction output
 );
 
     reg [7:0] memory [0:1023]; // Byte-addressable memory with 1024 bytes
 
-    // Read operation (asynchronous)
-    always @(*) begin
+    // Preload a simple addition instruction
+    initial begin
+        // R-type instruction to add $t2 (destination), $t0, $t1 (sources)
+        // Opcode 000000 (R-type), $t0 (rs = 8), $t1 (rt = 9), $t2 (rd = 10), 
+        // shamt 00000, funct 100000 (add)
+        memory[0]   = 8'h01; // Most significant byte
+        memory[1]   = 8'h09; 
+        memory[2]   = 8'h50; 
+        memory[3]   = 8'h20; // Least significant byte
+        // R-type instruction to add $t3 (destination), $t2, $t1 (sources)
+        // Opcode 000000 (R-type), $t2 (rs = 10), $t1 (rt = 9), $t3 (rd = 11), 
+        // shamt 00000, funct 100000 (add)
+        memory[4]   = 8'h01; // Most significant byte
+      	memory[5]   = 8'h49; 
+        memory[6]   = 8'h58; 
+        memory[7]   = 8'h20; // Least significant byte
+      	// R-type instruction to add $t1 (destination), $t2, $t3 (sources) 
+        // shamt 00000, funct 100000 (add)
+      	memory[8]   = 8'h01; // Most significant byte
+      	memory[9]   = 8'h4B; 
+      	memory[10]   = 8'h48; 
+      	memory[11]   = 8'h20; // Least significant byte
+    end
+
+    always @(posedge Clk) begin
+        // $display("Instruction # = %h, Instruction hex = %h", Address, {memory[Address], memory[Address + 1], memory[Address + 2], memory[Address + 3]});
         Instruction = {memory[Address], memory[Address + 1], memory[Address + 2], memory[Address + 3]};
     end
-
-    // Preload program instructions for simulation
-    initial begin
-        memory[0] = 8'h20; memory[1] = 8'h08; memory[2] = 8'h00; memory[3] = 8'h05; // addi $t0, $zero, 5
-        memory[4] = 8'h20; memory[5] = 8'h09; memory[6] = 8'h00; memory[7] = 8'h0A; // addi $t1, $zero, 10
-        memory[8] = 8'h01; memory[9] = 8'h09; memory[10] = 8'h50; memory[11] = 8'h20; // add $t2, $t0, $t1
-        memory[12] = 8'hAC; memory[13] = 8'h0A; memory[14] = 8'h00; memory[15] = 8'h00; // sw $t2, 0($zero)
-        memory[16] = 8'h8C; memory[17] = 8'h0B; memory[18] = 8'h00; memory[19] = 8'h00; // lw $t3, 0($zero)
-    end
-
 endmodule
 
 
@@ -255,14 +276,30 @@ module RegisterFile(
 
     reg [31:0] registers [31:0]; // 32 registers of 32 bits each
 
+    // Initialize registers with specific values for addition
+    initial begin
+      registers[0]  = 32'h00000000; // $zero always 0
+      registers[8]  = 32'h00000005; // $t0 = 5 (first operand)
+      registers[9]  = 32'h00000003; // $t1 = 3 (second operand)
+      registers[10] = 32'h00000002; // $t2 = 0 (destination, will be 8)
+      
+        // Initialize other registers to 0 for clarity
+        for(int i = 11; i < 32; i = i + 1) begin
+            registers[i] = 32'h00000000;
+        end
+    end
     // Read operation
-    assign ReadData1 = registers[ReadRegister1];
-    assign ReadData2 = registers[ReadRegister2];
+  assign ReadData1 = registers[ReadRegister1];
+  assign ReadData2 = registers[ReadRegister2];
+  
+  always @(posedge Clk) begin
+    // $display("Write Data HERE: %h", WriteData);
+    end
 
     // Write operation
-    always @(posedge Clk) begin
+  	always @(negedge Clk) begin
         if (RegWrite) begin
-            registers[WriteRegister] <= WriteData; // Write data to the selected register
+            registers[WriteRegister] = WriteData; // Write data to the selected register
         end
     end
 
@@ -350,6 +387,7 @@ module Control(
                 // Keep all control signals at default for undefined opcodes
             end
         endcase
+      //$display("ALUControl HERE %b", ALUControl);
     end
 
 endmodule
