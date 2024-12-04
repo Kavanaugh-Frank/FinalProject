@@ -3,7 +3,7 @@ module cpu(
     input Clk
 );
     // Wires for Program Counter (PC)
-    reg [31:0] PCIn = 32'h00000000; // input to the PC
+  	reg [31:0] PCIn = 32'h00001000; // input to the PC
     wire [31:0] PCOut; // output of the PC
 
     // Instantiate the Program Counter (PC) module
@@ -71,11 +71,8 @@ module cpu(
     wire [31:0] branchAddress;
 
     // Add the sign-extended immediate value to PC+4 for branch address calculation
-    BEQAdder BEQAdd (
-        .ValueIn1(PCPlusFour),
-        .ValueIn2({SignExtended[29:0], 2'b00}),
-        .ValueOut(branchAddress)
-    );
+  
+  	assign branchAddress = {16'b000000000000000, Instruction[15:0]};
 
     // Wires for Branch Mux
     wire [31:0] branchAddressMuxOutput;
@@ -90,11 +87,14 @@ module cpu(
     );
 
     // Wires for Jump Address
-    wire [31:0] jumpAddress;
+  	//  = 32'h00001008
+  	wire [31:0] jumpAddress;
 
     // Calculate the jump address by concatenating the upper 4 bits of PCOut,
     // the 26-bit immediate value from the instruction, and two zero bits.
-    assign jumpAddress = {PCPlusFour[31:28], Instruction[25:0], 2'b00};
+    //assign jumpAddress = {PCPlusFour[31:28], Instruction[25:0], 2'b00};
+  	assign jumpAddress = {6'b000000, Instruction[25:0]};
+
 
     wire [31:0] jumpMuxResult;
   
@@ -136,11 +136,21 @@ module cpu(
         .ReadData1(ReadData1),
         .ReadData2(ReadData2)
     );
+  
+  	wire[31:0] ALUReadData2;
+  
+  	Mux32Bit2To1 ALUSrcMux(
+      	.a(ReadData2),
+      	.b({16'b000000000000000, Instruction[15:0]}),
+    	.op(ALUSrc),
+        .result(ALUReadData2)
+    );  
+  
 
     // Instantiate the ALU
     ALU32Bit alu(
         .a(ReadData1),
-        .b(ReadData2),
+        .b(ALUReadData2),
         .cin(1'b0),
         .less(1'b0),
         .op(ALUControl),
@@ -174,7 +184,11 @@ module cpu(
     // Update the PCIn using the jumpMuxResult
     always @(posedge pcCLK) begin
         PCIn <= jumpMuxResult; // Update PC on each clock cycle
-    end
+      //if (MemWrite) begin
+        //$display("Write Data %h", ReadData2);
+      //end
+      //$display("ALUResult: %h, ReadData1 %h, ReadData2 %h", ALUResult, ReadData1, ReadData2);
+     end
 
 endmodule
 
@@ -191,34 +205,71 @@ module InstructionMemory(
     output reg [31:0] Instruction // 32-bit instruction output
 );
 
-    reg [7:0] memory [0:1023]; // Byte-addressable memory with 1024 bytes
+  reg [7:0] memory [2**12:2**13-1]; // Byte-addressable memory with 8191 bytes
 
-    // Preload a simple addition instruction
+    // this is where the instructions for the program will be
+  	// I left 1 as an example
     initial begin
         // R-type instruction to add $t2 (destination), $t0, $t1 (sources)
         // Opcode 000000 (R-type), $t0 (rs = 8), $t1 (rt = 9), $t2 (rd = 10), 
         // shamt 00000, funct 100000 (add)
-        memory[0]   = 8'h01; // Most significant byte
-        memory[1]   = 8'h09; 
-        memory[2]   = 8'h50; 
-        memory[3]   = 8'h20; // Least significant byte
-        // R-type instruction to add $t3 (destination), $t2, $t1 (sources)
-        // Opcode 000000 (R-type), $t2 (rs = 10), $t1 (rt = 9), $t3 (rd = 11), 
-        // shamt 00000, funct 100000 (add)
-        memory[4]   = 8'h01; // Most significant byte
-      	memory[5]   = 8'h49; 
-        memory[6]   = 8'h58; 
-        memory[7]   = 8'h20; // Least significant byte
-      	// R-type instruction to add $t1 (destination), $t2, $t3 (sources) 
-        // shamt 00000, funct 100000 (add)
-      	memory[8]   = 8'h01; // Most significant byte
-      	memory[9]   = 8'h4B; 
-      	memory[10]   = 8'h48; 
-      	memory[11]   = 8'h20; // Least significant byte
+    // adding 1 to s1 for the counter to work properly
+    memory[4096]   = 8'h02; // Most significant byte
+    memory[4097]   = 8'h2B; 
+    memory[4098]   = 8'h88; 
+	memory[4099]   = 8'h20; // Least significant byte
+
+      
+     // add $t1, $s0, $zero
+    memory[4100]   = 8'h02; // Most significant byte
+	memory[4101]   = 8'h00; 
+	memory[4102]   = 8'h48; 
+	memory[4103]   = 8'h20; // Least significant byte
+
+	// add $t4, $t0, $t3
+	memory[4104]   = 8'h01; // Most significant byte 
+	memory[4105]   = 8'h0B; 
+	memory[4106]   = 8'h60; 
+	memory[4107]   = 8'h20; // Least significant byte 
+
+	//
+	memory[4108]   = 8'h01; // Most significant byte 
+	memory[4109]   = 8'h80; 
+	memory[4110]   = 8'h40; 
+	memory[4111]   = 8'h20; // Least significant byte
+
+	//
+	memory[4112]   = 8'h12; // Most significant byte 
+	memory[4113]   = 8'h28; 
+      memory[4114]   = 8'h10; 
+      memory[4115]   = 8'h20; // Least significant byte 
+
+	//
+	memory[4116]   = 8'h01; // Most significant byte
+	memory[4117]   = 8'h30; 
+	memory[4118]   = 8'h50; 
+	memory[4119]   = 8'h20; // Least significant byte
+
+	//
+	memory[4120]   = 8'h01; // Most significant byte
+	memory[4121]   = 8'h40;
+	memory[4122]   = 8'h80;
+	memory[4123]   = 8'h20; // Least significant byte
+
+	//
+	memory[4124]   = 8'h08; // Most significant byte
+	memory[4125]   = 8'h00;
+    memory[4126]   = 8'h10;
+    memory[4127]   = 8'h08; // Least significant byte
+
+	  // store word
+      memory[4128]   = 8'hAE; // Most significant byte
+      memory[4129]   = 8'h50;
+      memory[4130]   = 8'h00;
+      memory[4131]   = 8'h00; // Least significant byte 
     end
 
     always @(posedge Clk) begin
-        // $display("Instruction # = %h, Instruction hex = %h", Address, {memory[Address], memory[Address + 1], memory[Address + 2], memory[Address + 3]});
         Instruction = {memory[Address], memory[Address + 1], memory[Address + 2], memory[Address + 3]};
     end
 endmodule
@@ -240,7 +291,7 @@ module DataMemory(
     output reg [31:0] ReadData  // 32-bit read data
 );
 
-    reg [7:0] memory [0:1023]; // Byte-addressable memory with 1024 bytes
+  reg [7:0] memory [16384:16384+400]; // Byte-addressable memory with 2**13-1 bytes
 
     // Read operation (asynchronous)
     always @(*) begin
@@ -250,15 +301,30 @@ module DataMemory(
     end
 
     // Write operation (synchronous)
-    always @(posedge Clk) begin
-        if (MemWrite) begin
-            memory[Address]     <= WriteData[31:24]; // MSB
-            memory[Address + 1] <= WriteData[23:16];
-            memory[Address + 2] <= WriteData[15:8];
-            memory[Address + 3] <= WriteData[7:0];  // LSB
-        end
-    end
+  always @(posedge Clk) begin
+    // If MemWrite is asserted, perform the write operation
+    if (MemWrite) begin
+        // Write to memory: Store data byte by byte
+      	memory[Address]     = WriteData[31:24]; // MSB
+      	memory[Address + 1] = WriteData[23:16];
+      	memory[Address + 2] = WriteData[15:8];
+      	memory[Address + 3] = WriteData[7:0];  // LSB
 
+        // Display after memory write operations
+        $display("MemWrite Enabled - Writing to memory at Address: %h", Address);
+        $display("Write Data (Full): %h", WriteData);
+        $display("Write Data Byte 0: %h", WriteData[31:24]);
+        $display("Write Data Byte 1: %h", WriteData[23:16]);
+        $display("Write Data Byte 2: %h", WriteData[15:8]);
+        $display("Write Data Byte 3: %h", WriteData[7:0]);
+
+        // Display the updated contents of memory
+        $display("Memory[Address]     (Byte 0): %h", memory[Address]);
+        $display("Memory[Address+1]   (Byte 1): %h", memory[Address + 1]);
+        $display("Memory[Address+2]   (Byte 2): %h", memory[Address + 2]);
+        $display("Memory[Address+3]   (Byte 3): %h", memory[Address + 3]);
+    end
+  end
 endmodule
 
 //
@@ -276,17 +342,25 @@ module RegisterFile(
 
     reg [31:0] registers [31:0]; // 32 registers of 32 bits each
 
-    // Initialize registers with specific values for addition
+    // Initialize registers with spcific values for addition
     initial begin
-      registers[0]  = 32'h00000000; // $zero always 0
-      registers[8]  = 32'h00000005; // $t0 = 5 (first operand)
-      registers[9]  = 32'h00000003; // $t1 = 3 (second operand)
-      registers[10] = 32'h00000002; // $t2 = 0 (destination, will be 8)
-      
-        // Initialize other registers to 0 for clarity
-        for(int i = 11; i < 32; i = i + 1) begin
-            registers[i] = 32'h00000000;
-        end
+     	registers[0]  = 32'h00000000; // $zero always 0
+      	registers[8]  = 32'h00000000; // $t0 = 0
+      	registers[9]  = 32'h00000000; // $t1 = 0
+      	registers[10] = 32'h00000000; // $t2 = 0
+      	registers[11] = 32'h00000001; // $t3 = 0
+		registers[12] = 32'h00000000; // $t4 = 0
+		registers[13] = 32'h00000000; // $t5 = 0
+		registers[14] = 32'h00000000; // $t6 = 0
+	 	registers[15] = 32'h00000000; // $t7 = 0
+        registers[16] = 32'h00000007; // $s0 = 0 ( this is the first number to multiply )
+        registers[17] = 32'h00000007; // $s1 = 0 ( this is the second number to multiply )
+      	registers[18] = 32'h00004000; // $s2 = 0 ( this is where the final value should be stored )
+		registers[19] = 32'h00000000; // $s3 = 0
+		registers[20] = 32'h00000000; // $s4 = 0
+		registers[21] = 32'h00000000; // $s5 = 0
+		registers[22] = 32'h00000000; // $s6 = 0
+		registers[23] = 32'h00000000; // $s7 = 0
     end
     // Read operation
   assign ReadData1 = registers[ReadRegister1];
