@@ -16,12 +16,15 @@ module cpu_testbench();
         #7 pcCLK = ~pcCLK;
     end
     
+    // Initial block to display register values and simulate
     initial begin
+        // Initialize clocks
         Clk = 0;
-        pcCLK = 0;
-        
-        #3000;
+        pcCLK = 0;z
 
-        #10 $finish;
+        // Infinite loop to display the values of $s0 and $s1 (R16 and R17)
+        forever begin
+            #10; // Wait 10ns between updates
+        end
     end
 endmodule

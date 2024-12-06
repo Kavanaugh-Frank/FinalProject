@@ -277,17 +277,17 @@ module DataMemory(
 
         // Display after memory write operations
         $display("MemWrite Enabled - Writing to memory at Address: %h", Address);
-        $display("Write Data (Full): %h", WriteData);
-        $display("Write Data Byte 0: %h", WriteData[31:24]);
-        $display("Write Data Byte 1: %h", WriteData[23:16]);
-        $display("Write Data Byte 2: %h", WriteData[15:8]);
-        $display("Write Data Byte 3: %h", WriteData[7:0]);
+      $display("Full WriteData: %d", WriteData);
+      $display("Write Data Byte 0: %d", WriteData[31:24]);
+      $display("Write Data Byte 1: %d", WriteData[23:16]);
+      $display("Write Data Byte 2: %d", WriteData[15:8]);
+      $display("Write Data Byte 3: %d", WriteData[7:0]);
 
         // Display the updated contents of memory
-        $display("Memory[Address]     (Byte 0): %h", memory[Address]);
-        $display("Memory[Address+1]   (Byte 1): %h", memory[Address + 1]);
-        $display("Memory[Address+2]   (Byte 2): %h", memory[Address + 2]);
-        $display("Memory[Address+3]   (Byte 3): %h", memory[Address + 3]);
+      $display("Memory[Address]     (Byte 0): %d", memory[Address]);
+      $display("Memory[Address+1]   (Byte 1): %d", memory[Address + 1]);
+      $display("Memory[Address+2]   (Byte 2): %d", memory[Address + 2]);
+      $display("Memory[Address+3]   (Byte 3): %d", memory[Address + 3]);
     end
   end
 endmodule
@@ -318,8 +318,8 @@ module RegisterFile(
 		registers[13] = 32'h00000000; // $t5 = 0
 		registers[14] = 32'h00000000; // $t6 = 0
 	 	registers[15] = 32'h00000000; // $t7 = 0
-        registers[16] = 32'h00000007; // $s0 = 0 ( this is the first number to multiply )
-        registers[17] = 32'h00000007; // $s1 = 0 ( this is the second number to multiply )
+      	registers[16] = 32'h00000009; // $s0 = 0 ( this is the first number to multiply )
+      	registers[17] = 32'h00000009; // $s1 = 0 ( this is the second number to multiply )
       	registers[18] = 32'h00004000; // $s2 = 0 ( this is where the final value should be stored )
 		registers[19] = 32'h00000000; // $s3 = 0
 		registers[20] = 32'h00000000; // $s4 = 0
